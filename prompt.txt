@@ -1,0 +1,247 @@
+Build a complete, production-ready Flutter Habit Tracker app called "HabitForge" with 
+the following specifications. Generate ALL files with FULL implementation code — no 
+placeholders, no TODOs, no truncation. Every feature must be fully functional.
+
+=== ARCHITECTURE ===
+- Clean Architecture with feature-first folder structure
+- State Management: Riverpod 2.0
+- Local Database: Hive for simple data, Isar for complex queries
+- Navigation: GoRouter with named routes
+- Theme: Material 3 with light/dark/system modes and 10 accent color options
+
+=== DATA MODELS ===
+HabitModel: id(UUID), name, description, emoji, colorValue(hex int), 
+type(enum: boolean/count/duration/measurable), frequency(enum: daily/weekly/custom), 
+scheduledDays(List<int>), targetCount(int), targetValue(double), unit(String), 
+targetDuration(Duration), reminders(List<TimeOfDay>), categoryId, sortOrder, 
+isArchived, createdAt, startDate, endDate, habitStackParentId, currentStreak, 
+bestStreak, timeOfDay(enum: morning/afternoon/evening/anytime)
+
+HabitEntry: id, habitId, date, isCompleted, countValue, measuredValue, 
+durationValue, note, moodEmoji, completedAt, effortRating(1-5)
+
+Achievement: id, title, description, iconEmoji, type, requiredValue, 
+isUnlocked, unlockedAt, xpReward
+
+UserProfile: name, totalXP, level, totalHabitsCompleted, longestStreak, 
+joinDate, selectedTheme, selectedAccentColor, weekStartDay, dayStartHour, 
+selectedLanguage
+
+MoodEntry: id, date, mood(enum: great/good/okay/bad/terrible), note, tags(List<String>)
+
+=== SCREENS (10 total) ===
+
+1. ONBOARDING SCREEN (3 animated pages + setup page):
+   - Page 1: "Track Your Habits" with Lottie-style animation
+   - Page 2: "Build Streaks" with fire animation
+   - Page 3: "Achieve Goals" with trophy animation
+   - Setup: Name input, pick 3 starter habits from template grid, week start 
+     day toggle(Mon/Sun), theme selection, notification permission request
+   - Skip button, dot indicators, smooth PageView transitions
+   - Only shown on first launch (SharedPreferences flag)
+
+2. HOME SCREEN (Main Dashboard):
+   - Time-based greeting ("Good Morning/Afternoon/Evening, {name}!")
+   - Daily motivational quote (rotates from 100+ hardcoded quotes)
+   - Animated circular progress ring showing today's completion percentage
+   - Streak counter with animated fire emoji (🔥)
+   - Horizontal scrollable date strip (past 7 days + today + future 7 days), 
+     today highlighted, tap to view that day's habits
+   - Habits grouped by time of day (Morning/Afternoon/Evening/Anytime) with 
+     section headers
+   - Each habit tile shows: emoji, name, progress indicator based on type:
+     * Boolean: tap to check/uncheck with checkmark scale+bounce animation
+     * Count: tap to increment, long-press for manual input, circular progress
+     * Duration: tap to open timer or manual input, linear progress bar
+     * Measurable: tap for number input, shows value/target
+   - Swipe right on habit = mark complete, swipe left = skip
+   - Long-press drag to reorder habits
+   - Confetti animation when ALL daily habits completed
+   - FAB button to create new habit
+   - Pull-to-refresh
+   - Empty state with illustration and "Create your first habit" button
+   - Haptic feedback on completion
+
+3. CREATE/EDIT HABIT SCREEN:
+   - Text fields: name (required), description (optional)
+   - Searchable emoji picker grid (200+ emojis organized by category)
+   - Color picker with 20 preset colors + custom option
+   - Tracking type selector: Yes/No, Count, Duration, Measurable (with cards)
+   - Target input (shown based on type): number + unit text field
+   - Frequency picker: Daily, Specific days (weekday checkboxes), 
+     Every N days (interval picker), X times per week
+   - Time of day selector: Morning/Afternoon/Evening/Anytime chips
+   - Category selector: Health, Fitness, Mindfulness, Productivity, Learning, 
+     Social, Finance, Creativity, Custom
+   - Multiple reminders: add multiple times with delete option
+   - Advanced section (expandable): start date, end date, habit stacking 
+     (dropdown of other habits)
+   - "Browse Templates" button linking to templates screen
+   - Form validation, save button with loading state
+   - Hero animation for edit mode
+
+4. HABIT DETAIL SCREEN:
+   - Hero animation from home tile
+   - Header: emoji, name, edit button
+   - Stats cards: current streak, best streak, total completions, 
+     completion rate percentage
+   - GitHub-style heat map calendar (green shades) - interactive, tap any 
+     day to see that day's entry
+   - Weekly completion bar chart (fl_chart) showing % per day of week
+   - Recent entries list with completion status, values, and notes
+   - Notes section with ability to add notes to entries
+   - Action buttons: Edit, Archive, Delete (with confirmation dialog)
+   - Share stats as image button
+
+5. HABIT TEMPLATES SCREEN:
+   - Grid of 40+ pre-built habit templates organized by category
+   - Categories: Health(8), Fitness(6), Mindfulness(5), Productivity(6), 
+     Learning(5), Social(3), Finance(3), Creativity(3)
+   - Each template card shows emoji, name, type, target
+   - Tap to auto-fill create habit form
+   - Search/filter by category
+
+6. CALENDAR VIEW:
+   - Full month calendar with color-coded days based on completion %:
+     Green(100%), Yellow-Green(75-99%), Yellow(50-74%), Orange(25-49%), 
+     Red(1-24%), Gray(0%)
+   - Toggle between month view and week view
+   - Tap any day to see bottom sheet with that day's habits and statuses
+   - Can mark past habits as complete from calendar (backfill up to 7 days)
+   - Swipe left/right to change months
+   - Today indicator dot
+   - Legend showing color meanings
+
+7. STATISTICS SCREEN:
+   - Time range toggle: Week / Month / Year / All Time
+   - Overall score animated ring (large, centered)
+   - Daily completion trend line chart (fl_chart) for selected period
+   - Best & worst habits ranking (top 3 each with % rates)
+   - Streak statistics: current, best, average
+   - Completion by day of week (horizontal bar chart)
+   - Time of day performance (morning/afternoon/evening completion %)
+   - Yearly heat map (GitHub contribution style)
+   - Category breakdown pie chart
+   - Total habits completed counter
+   - Filter by category or specific habit
+
+8. ACHIEVEMENTS SCREEN:
+   - Level display with XP progress bar and level name
+   - XP system: +10 boolean, +15 count/duration at target, +25 all daily 
+     bonus, +streak_length×2 per completion, +50-500 per achievement
+   - Levels: 1(0XP Beginner) to 30(50000XP Legend)
+   - Grid of 50+ achievements (unlocked shown with golden glow, locked shown 
+     with lock icon and progress):
+     Streaks: 3-day(First Flame), 7-day(Week Warrior), 30-day(Monthly Master), 
+     100-day(Century Club), 365-day(Year Champion)
+     Completions: 1, 10, 50, 100, 500, 1000, 5000
+     Creation: 1, 5, 10, 25 habits created
+     Perfect: Perfect Day(100%), Perfect Week, Perfect Month
+     Special: Early Bird, Comeback Kid, Variety Pack
+   - Achievement unlock animation: full-screen overlay with badge reveal, 
+     golden particles, XP count-up
+   - Milestones checklist at bottom
+
+9. FOCUS TIMER SCREEN:
+   - Large circular animated countdown timer
+   - Preset buttons: 5, 10, 15, 25, 30, 60 minutes + custom
+   - Link to a specific habit (dropdown selector)
+   - Start/Pause/Stop/Reset controls
+   - Auto-complete linked habit when timer finishes
+   - Break timer option (5 min default after session)
+   - Session counter for today
+   - Total focus time today display
+   - Keep screen awake during timer
+   - Notification when timer completes (even in background)
+   - Timer settings: sound selection, vibrate toggle, auto-break toggle
+
+10. SETTINGS SCREEN:
+    - Profile section: name (editable), level display, join date
+    - Appearance: Light/Dark/System theme toggle, accent color picker (10 colors), 
+      font size (small/normal/large)
+    - General: Week start day (Mon/Sun), language selector (EN/ES/FR/HI), 
+      date format, day start hour (for night owls)
+    - Notifications: Daily morning reminder toggle+time, evening summary 
+      toggle+time, streak at risk alert toggle, weekly report toggle, 
+      achievement alerts toggle
+    - Data: Backup to JSON file, Restore from JSON, Export CSV, Export PDF 
+      report, Clear all data (double confirmation)
+    - About: Version, rate app, send feedback, privacy policy, terms
+
+=== MOOD TRACKER (integrated) ===
+- Accessible from home screen (mood icon in app bar)
+- 5-level mood selector with animated emoji faces
+- Optional tags: Energetic, Calm, Stressed, Happy, Anxious, Grateful, Tired, 
+  Motivated + custom tags
+- Optional note field
+- Mood history line chart (last 30 days)
+- Mood-habit correlation insight: "You feel best when you complete X and Y"
+- Saved per day, editable
+
+=== JOURNAL (integrated) ===
+- Quick journal entry from home screen
+- Date, freeform text, optional mood, optional tags
+- Searchable journal history
+- Linked to daily habit entries
+
+=== NOTIFICATION SYSTEM ===
+- Per-habit reminders at custom times
+- Actionable notifications: [Mark Done] [Snooze 15m]
+- Morning summary: "Good morning! You have X habits today!"
+- Evening summary: "You completed X/Y habits today!"
+- Streak at risk: 2 hours before day end if incomplete habits
+- Achievement unlocked notifications
+- Weekly report notification
+- Inactivity reminder after 2 days
+- All configurable in settings
+
+=== ANIMATIONS ===
+- Habit completion: checkmark scale+bounce(200ms) + background color sweep + 
+  haptic feedback
+- All complete: confetti burst 3 seconds + celebration modal
+- Streak: fire emoji pulse/grow + spark particles
+- Progress ring: smooth 0→current% fill on screen load
+- Counter: number flip animation
+- Achievement unlock: full-screen golden overlay + badge reveal + particles
+- Page transitions: Hero animations for habit cards, slide for navigation
+- Level up: full-screen celebration with new badge
+- Pull-to-refresh: custom themed indicator
+- FAB: scale+rotate on tap
+- Delete: slide out + fade + undo snackbar
+
+=== BUSINESS LOGIC ===
+- Streak breaks at configurable day-end time (default midnight)
+- Non-scheduled days don't break streaks
+- Past entries editable up to 7 days back
+- Future entries cannot be created
+- Archived habits freeze streak, hidden from home but data preserved
+- XP calculated on every completion, level auto-updates
+- Achievements checked after every completion event
+- Quotes rotate daily based on day-of-year index
+- All data persisted locally, survives app restart
+- Proper error handling with user-friendly messages
+- Loading states with shimmer effects
+
+=== BOTTOM NAVIGATION ===
+5 tabs: Home(🏠), Calendar(📅), Add Habit(➕ center FAB), Statistics(📊), 
+Settings(⚙️)
+
+=== ADDITIONAL REQUIREMENTS ===
+- Fully responsive (phone + tablet layouts)
+- All text externalized for localization (at minimum English)
+- Smooth 60fps animations throughout
+- Proper dispose/cleanup of controllers and streams
+- Search functionality in habit list
+- Sort habits by: name, creation date, completion rate, streak
+- Filter habits by: category, type, active/archived
+- Undo support for delete and complete actions
+- App works fully offline
+- Proper back button handling
+- Keyboard-aware scrolling in forms
+- Accessibility: semantic labels, sufficient contrast ratios
+
+Generate the complete implementation for every single file in the project. 
+Start with main.dart and app.dart, then systematically generate every model, 
+provider, repository, screen, widget, service, and utility file. Use realistic 
+sample data for templates and quotes. Ensure all features interconnect properly 
+— completing habits updates streaks, XP, achievements, and statistics in real-time.
